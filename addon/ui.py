@@ -89,11 +89,11 @@ class SettingsDialog(QDialog):
         self._log_timer.timeout.connect(self._refresh_logs)
         self._log_timer.start()
 
-    def closeEvent(self) -> None:  # noqa: N802 (Qt naming)
+    def closeEvent(self, event) -> None:  # noqa: N802 (Qt naming)
         if self._log_timer is not None:
             self._log_timer.stop()
             self._log_timer = None
-        super().closeEvent()
+        super().closeEvent(event)
 
     # ------------------------------------------------------------------ UI
     def _build_ui(self) -> None:
