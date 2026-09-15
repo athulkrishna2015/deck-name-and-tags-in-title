@@ -67,3 +67,6 @@ DEFAULTS = {
     CFG_SUBDECK_FORMAT: "{parent}::{child}",
     CFG_USE_ARGV0: False,
 }
+
+#: Current add-on version (mirrors ``VERSION``; used for update welcomes).
+ADDON_VERSION = "2.2.0"

@@ -5,7 +5,7 @@ here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [2.2.0] — (unreleased)
+## [2.2.0] — (2026-09-15)
 
 ### Added
 
@@ -14,6 +14,28 @@ adheres to [Semantic Versioning](https://semver.org/).
 - The Config UI **Settings** tab now has an **Ignored tags** field with
   autocomplete fed by the collection's tag list, an **Ignoring now** list,
   and **Add typed tag** / **Remove selected** / **Refresh tag list** actions.
+- New **Support** tab in the config dialog (`addon/tab_support.py`, QR images
+  in `addon/Support/`): Ko-fi button plus UPI/BTC/ETH QR codes with
+  copy-to-clipboard address rows, and an "I have supported this addon"
+  checkbox stored in `meta.json` (`supporter_opt_out`).
+- The config dialog now opens automatically on the **Support** tab once per
+  update (`addon/update_welcome.py`, tracked via
+  `meta.json:last_seen_version`), deferred past startup via
+  `profile_did_open` + `QTimer.singleShot` so Anki startup is not slowed.
+  Supporters who ticked the opt-out checkbox never see the auto-open.
+- Config dialog refactored to one-tab-per-file: `addon/tab_settings.py`
+  (Settings), `addon/tab_logs.py` (Logs), `addon/tab_support.py` (Support),
+  with `addon/ui.py` kept as a thin shell.
+
+### Fixed
+
+- Fixed `TypeError: setCaseSensitivity(...): argument 1 has unexpected type
+  'int'` crash when opening Config on Anki 26.08 / PyQt 6.11 (strict Qt6
+  enums): `QCompleter.setCaseSensitivity()`, `QListWidget.setSelectionMode()`
+  and `QPlainTextEdit.setLineWrapMode()` now pass real Qt6 enum values with
+  Qt5 fallbacks instead of raw ints.
+- Removed a leftover dead block in `SupportTabMixin.load_supporter_state()`
+  that referenced an undefined `meta` variable.
 
 ## [2.1.1] — (2026-09-15)
 

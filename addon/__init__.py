@@ -209,6 +209,12 @@ def _on_config_updated(*_args, **_kwargs):
 # Register the Config button UI and keep the runtime config in sync.
 ui.register_config_action()
 try:
+    from .update_welcome import schedule_update_welcome
+
+    schedule_update_welcome()
+except Exception:
+    pass
+try:
     mw.addonManager.setConfigUpdatedAction(__name__, _on_config_updated)
 except Exception:
     pass
