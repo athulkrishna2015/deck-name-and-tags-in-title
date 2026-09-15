@@ -31,13 +31,14 @@ Controls what appears in the window title while reviewing.
 
 | Value | Effect |
 |-------|--------|
-| `"both"` | Deck name **and** the current card's tags. *(default)* |
+| `"both"` | Deck name **and** the note's tags. *(default)* |
 | `"deck"` | Only the deck name (classic behaviour). |
-| `"tags"` | Only the current card's tags. |
+| `"tags"` | Only the note's tags. |
 | `"none"` | Nothing extra — just your profile & "Anki". |
 
-Tags are only available while a card is being reviewed; the deck browser and
-the deck overview never show tags.
+Tags belong to *notes*, not cards; they are read from the note behind the
+reviewed card via `card.note().tags`. Tags are only available while a card is
+being reviewed — the deck browser and the deck overview never show tags.
 
 ### `title_separator` — *string*, default `" – "`
 

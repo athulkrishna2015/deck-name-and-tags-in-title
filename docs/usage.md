@@ -11,8 +11,8 @@ where you are:
 | Deck overview | `Spanish – Anki` (deck name only — no card is selected yet) |
 | Reviewing a card | `Spanish::Basics – España, 🇪🇸 – Anki` | 
 
-The review title shows the **deck (incl. sub-deck)** and the **current
-card's tags**.
+The review title shows the **deck (incl. sub-deck)** and the **tags of the
+note** behind the reviewed card (tags belong to notes, not cards).
 
 ## Changing what is shown
 
@@ -37,3 +37,18 @@ card's tags**.
   never shown.
 - With `show_subdeck` enabled, reviewing a card in a sub-deck shows the full
   path, e.g. `Spanish::Basics` in place of just `Spanish`.
+
+## Debugging with the Logs tab
+
+The settings dialog has a **Logs** tab for live debugging:
+
+1. **Tools → Add-ons** → *Deck Name & Tags in Title* → **Config** → **Logs**.
+2. Pick a **Minimum level** (DEBUG shows everything) and watch entries stream
+   in — the view auto-refreshes while the dialog is open.
+3. Use **Refresh** to re-read, **Copy** to put the visible log on the
+   clipboard, **Clear** to wipe the in-memory buffer, and **Open log file…**
+   to open the rotating file
+   (`user_files/deck_name_and_tags_in_title.log`).
+
+Each title change is logged (deck, sub-deck, tags, mode and the final title),
+which makes it easy to trace why the title looks the way it does.

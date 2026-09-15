@@ -60,6 +60,8 @@ class _AddonManager:
             "use_argv_0": False,
         }
         self.updated = None
+        import tempfile
+        self._folder = tempfile.mkdtemp(prefix="dnat_test_")
 
     def getConfig(self, module):
         return dict(self.conf)
@@ -73,12 +75,24 @@ class _AddonManager:
     def setConfigUpdatedAction(self, module, fn):
         self.updated = fn
 
+    def addonsFolder(self, module=None):
+        return self._folder
+
+
+class _Note:
+    def __init__(self, tags):
+        self.tags = list(tags)
+        self.nid = 1234
+
 
 class _Card:
     def __init__(self, tags, did=2, odid=None):
-        self.tags = list(tags)
+        self._note = _Note(tags)
         self.did = did
         self.odid = odid
+
+    def note(self):
+        return self._note
 
 
 class _MW:
@@ -106,9 +120,10 @@ sys.modules["aqt.qt"] = aqt_qt
 def _make_qt_stub():
     """Create trivial classes so `from aqt.qt import QDialog, ...` works."""
     names = [
-        "QCheckBox", "QComboBox", "QDialog", "QFormLayout", "QGroupBox",
-        "QHBoxLayout", "QLabel", "QLineEdit", "QMessageBox", "QPushButton",
-        "QSpinBox", "QVBoxLayout", "QAction",
+        "QApplication", "QCheckBox", "QComboBox", "QDesktopServices", "QDialog",
+        "QFont", "QFormLayout", "QGroupBox", "QHBoxLayout", "QLabel", "QLineEdit",
+        "QMessageBox", "QPlainTextEdit", "QPushButton", "QSpinBox", "QTabWidget",
+        "QTimer", "QUrl", "QVBoxLayout", "QWidget",
     ]
 
     class _Stub:
@@ -207,3 +222,22 @@ print("\nAll checks passed:")
 for label, ok, got, expected in results:
     print(f"  [{'OK' if ok else 'FAIL'}] {label}: got={got!r} expected={expected!r}")
 print("\nPASSED")
+
+# --------------------------------------------------------------------------
+# Verify the Logs-tab backend (logging ring buffer + log file path).
+# --------------------------------------------------------------------------
+import os
+from addon import logging as addon_logging
+
+addon_logging.clear()
+logger = addon_logging.get_logger()
+logger.info("log-tab sanity message 42")
+lines = addon_logging.snapshot(addon_logging.INFO)
+hit = any("log-tab sanity message 42" in line for line in lines)
+assert hit, f"ring buffer did not capture the message: {lines!r}"
+assert addon_logging.ring_size() >= 1, "ring size should be >= 1"
+path = addon_logging.log_file_path()
+assert path and os.path.isfile(path), f"log file not created: {path!r}"
+with open(path, encoding="utf-8") as fh:
+    assert "log-tab sanity message 42" in fh.read(), "message missing from log file"
+print("LOG-TAB BACKEND OK:", path)

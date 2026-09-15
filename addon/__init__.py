@@ -24,6 +24,9 @@ from aqt import mw
 
 from .config import get_settings, refresh_settings
 from . import ui
+from .logging import get_logger
+
+logger = get_logger()
 
 
 def wrapmethod(orig, wrapper, pos="after"):
@@ -88,17 +91,27 @@ class DeckNamer(object):
         return self.profile_string
 
     def get_tags_string(self):
-        """Return the tags of the card currently being reviewed ('' otherwise)."""
+        """Return the tags of the *note* behind the reviewed card ('' otherwise).
+
+        Tags belong to notes, not cards — a card's tags are resolved through
+        ``card.note().tags``.
+        """
         settings = get_settings()
         card = getattr(mw.reviewer, "card", None)
         if card is None:
             return ""
-        tags = list(getattr(card, "tags", None) or [])
+        try:
+            note = card.note()
+        except Exception as exc:  # pragma: no cover
+            logger.debug("get_tags_string: no note for card: %s", exc)
+            return ""
+        tags = list(getattr(note, "tags", None) or [])
         # Scheduling markers (used by some add-ons) carry no learning value.
         tags = [t for t in tags if t not in ("marked", "suspended", "leech")]
         max_tags = settings.max_tags
         if max_tags and len(tags) > max_tags:
             tags = tags[:max_tags]
+        logger.debug("note tags (%d): %s", len(tags), tags)
         return settings.tag_separator.join(tags)
 
     @staticmethod
@@ -120,16 +133,17 @@ class DeckNamer(object):
     # -- title setters ---------------------------------------------------------
     def deck_browser_title(self):
         """Window title in the deck browser (no current card, so no tags)."""
-        mw.setWindowTitle(
-            self._join((self.get_profile_string(), self.get_prog_name()))
-        )
+        title = self._join((self.get_profile_string(), self.get_prog_name()))
+        logger.debug("deck_browser_title -> %r", title)
+        mw.setWindowTitle(title)
 
     def overview_title(self):
         """Window title at the deck overview (tags not available there)."""
-        content = self._content_title(deck_part=self.get_deck_name())
-        mw.setWindowTitle(
-            self._join((content, self.get_profile_string(), self.get_prog_name()))
-        )
+        deck = self.get_deck_name()
+        content = self._content_title(deck_part=deck)
+        title = self._join((content, self.get_profile_string(), self.get_prog_name()))
+        logger.debug("overview_title deck=%r content=%r -> %r", deck, content, title)
+        mw.setWindowTitle(title)
 
     def card_title(self):
         """Window title while reviewing: deck name and/or card tags."""
@@ -167,14 +181,24 @@ class DeckNamer(object):
 
         tags = self.get_tags_string()
         content = self._content_title(deck_part, tags)
-        mw.setWindowTitle(
-            self._join((content, self.get_profile_string(), self.get_prog_name()))
+        title = self._join((content, self.get_profile_string(), self.get_prog_name()))
+        logger.debug(
+            "card_title deck=%r subdeck=%r home=%r tags=%r content=%r mode=%r -> %r",
+            deck_name,
+            subdeck_name,
+            home,
+            tags,
+            content,
+            settings.title_content,
+            title,
         )
+        mw.setWindowTitle(title)
 
 
 def _on_config_updated(*_args, **_kwargs):
     """Re-read configuration after the user edits it (no restart needed)."""
     refresh_settings()
+    logger.debug("configuration reloaded: title_content=%s", get_settings().title_content)
 
 
 # Register the Config button UI and keep the runtime config in sync.

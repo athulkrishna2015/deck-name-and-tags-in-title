@@ -39,10 +39,12 @@ ln -s "$(pwd)/addon" ~/.local/share/Anki2/addons21/deck_name_and_tags_in_title
 mklink /D "%APPDATA%\Anki2\addons21\deck_name_and_tags_in_title" "%CD%\addon"
 ```
 
-In this workspace the equivalent link is created by:
+In this workspace the add-on is linked into Anki's live add-ons folder
+(`~/.local/share/Anki2/addons21/`) following the existing `_dev` convention:
 
 ```shell
-ln -s "……/addons/    deck_name_and_tags_in_title/addon" "……/addons/deck_name_and_tags_in_title"
+ln -s "……/portable/anki/addons/    deck_name_and_tags_in_title/addon" \
+      "$HOME/.local/share/Anki2/addons21/deck_name_and_tags_in_title_dev"
 ```
 
 ## Repository layout
@@ -54,6 +56,7 @@ deck_name_and_tags_in_title/
 │   ├── constants.py          # config keys, allowed values, defaults
 │   ├── config.py             # config load/save/coercion/caching
 │   ├── ui.py                 # Qt config dialog + Config action wiring
+│   ├── logging.py            # rotating file + in-memory log ring (Logs tab)
 │   ├── config.json           # shipped default values
 │   ├── config.md             # reference shown by the native config editor
 │   ├── manifest.json         # add-on name/package/version for Anki

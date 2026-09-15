@@ -5,7 +5,34 @@ here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [2.0.0] — (unreleased)
+## [2.1.0] — (unreleased)
+
+### Added
+
+- **Logs tab** in the settings dialog (**Config → Logs**) for debugging:
+  - Live view of recent add-on log records (auto-refreshes while open).
+  - Filter by minimum level (DEBUG / INFO / WARNING / ERROR).
+  - **Refresh**, **Copy**, **Clear** and **Open log file…** actions.
+- New `addon/logging.py` module: rotating log file written to the add-on's
+  `user_files/deck_name_and_tags_in_title.log` (preserved across upgrades)
+  plus an in-memory ring buffer that powers the Logs tab.
+- Debug logging added throughout the title-building code
+  (`deck_browser_title`, `overview_title`, `card_title`, config reloads).
+
+### Fixed
+
+- **Tags now actually appear in the title.** Tags belong to *notes*, not
+  cards — the previous code read `card.tags`, which does not exist, so tags
+  silently never showed. It now resolves them correctly via
+  `card.note().tags`.
+- Settings dialog buttons (Save / Close / Reset) were never added to the
+  dialog layout; they are now wired into the tabbed UI.
+
+### Changed
+
+- Settings dialog is now a `QTabWidget` with **Settings** and **Logs** tabs.
+
+## [2.0.0] — (baseline)
 
 ### Added
 

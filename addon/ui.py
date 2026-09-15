@@ -19,20 +19,29 @@ from typing import Any
 
 from aqt import mw
 from aqt.qt import (
+    QApplication,
     QCheckBox,
     QComboBox,
+    QDesktopServices,
     QDialog,
+    QFont,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QMessageBox,
+    QPlainTextEdit,
     QPushButton,
     QSpinBox,
+    QTabWidget,
+    QTimer,
+    QUrl,
     QVBoxLayout,
+    QWidget,
 )
 
+from . import logging as logmod
 from .config import get_config, save_config, refresh_settings
 from .constants import (
     CFG_CONTENT,
@@ -69,15 +78,36 @@ class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Deck Name & Tags in Title — Settings")
-        self.setMinimumWidth(460)
+        self.setMinimumWidth(640)
+        self._log_timer = None
         self._build_ui()
         self._load_values()
+        self._refresh_logs()
+        # Live-refresh the Logs tab while the dialog is open.
+        self._log_timer = QTimer(self)
+        self._log_timer.setInterval(1000)
+        self._log_timer.timeout.connect(self._refresh_logs)
+        self._log_timer.start()
+
+    def closeEvent(self) -> None:  # noqa: N802 (Qt naming)
+        if self._log_timer is not None:
+            self._log_timer.stop()
+            self._log_timer = None
+        super().closeEvent()
 
     # ------------------------------------------------------------------ UI
     def _build_ui(self) -> None:
         root = QVBoxLayout(self)
         root.setContentsMargins(14, 14, 14, 14)
         root.setSpacing(12)
+
+        self.tabs = QTabWidget()
+
+        # ===== Settings tab ================================================
+        settings_tab = QWidget()
+        settings_layout = QVBoxLayout(settings_tab)
+        settings_layout.setContentsMargins(12, 12, 12, 12)
+        settings_layout.setSpacing(12)
 
         # --- What to show -------------------------------------------------
         group_content = QGroupBox("Title content")
@@ -92,10 +122,10 @@ class SettingsDialog(QDialog):
             "",
             QLabel(
                 "Deck names come from the deck you are in; tags come from the "
-                "card being reviewed (tags only appear during review)."
+                "note behind the reviewed card (they only appear during review)."
             ),
         )
-        root.addWidget(group_content)
+        settings_layout.addWidget(group_content)
 
         # --- Formatting -----------------------------------------------------
         group_fmt = QGroupBox("Formatting")
@@ -124,7 +154,14 @@ class SettingsDialog(QDialog):
         self.cb_argv0 = QCheckBox('Use the program file name instead of "Anki"')
         fmt.addRow("", self.cb_argv0)
 
-        root.addWidget(group_fmt)
+        settings_layout.addWidget(group_fmt)
+        settings_layout.addStretch()
+        self.tabs.addTab(settings_tab, "Settings")
+
+        # ===== Logs tab =====================================================
+        self.tabs.addTab(self._build_logs_tab(), "Logs")
+
+        root.addWidget(self.tabs)
 
         # --- Buttons ---------------------------------------------------------
         buttons = QHBoxLayout()
@@ -133,14 +170,109 @@ class SettingsDialog(QDialog):
         buttons.addWidget(btn_reset)
         buttons.addStretch(1)
 
-        btn_cancel = QPushButton("Cancel")
-        btn_cancel.clicked.connect(self.reject)
-        buttons.addWidget(btn_cancel)
+        btn_close = QPushButton("Close")
+        btn_close.clicked.connect(self.reject)
+        buttons.addWidget(btn_close)
 
         btn_save = QPushButton("Save")
         btn_save.setDefault(True)
         btn_save.clicked.connect(self._on_save)
         buttons.addWidget(btn_save)
+
+        root.addLayout(buttons)
+# ------------------------------------------------------------ Logs tab
+    def _build_logs_tab(self) -> QWidget:
+        tab = QWidget()
+        lay = QVBoxLayout(tab)
+        lay.setContentsMargins(12, 12, 12, 12)
+        lay.setSpacing(8)
+
+        # Toolbar row
+        top = QHBoxLayout()
+        top.addWidget(QLabel("Minimum level:"))
+        self.combo_log_level = QComboBox()
+        for label, lvl in (
+            ("DEBUG", logmod.DEBUG),
+            ("INFO", logmod.INFO),
+            ("WARNING", logmod.WARNING),
+            ("ERROR", logmod.ERROR),
+        ):
+            self.combo_log_level.addItem(label, lvl)
+        self.combo_log_level.setCurrentIndex(0)
+        self.combo_log_level.currentIndexChanged.connect(self._refresh_logs)
+        top.addWidget(self.combo_log_level)
+        top.addStretch(1)
+
+        btn_refresh = QPushButton("Refresh")
+        btn_refresh.clicked.connect(self._refresh_logs)
+        top.addWidget(btn_refresh)
+
+        btn_copy = QPushButton("Copy")
+        btn_copy.clicked.connect(self._on_log_copy)
+        top.addWidget(btn_copy)
+
+        btn_clear = QPushButton("Clear")
+        btn_clear.clicked.connect(self._on_log_clear)
+        top.addWidget(btn_clear)
+
+        btn_open = QPushButton("Open log file…")
+        btn_open.clicked.connect(self._on_log_open)
+        top.addWidget(btn_open)
+
+        lay.addLayout(top)
+
+        self.txt_log = QPlainTextEdit()
+        self.txt_log.setReadOnly(True)
+        try:  # monospace helps readability where available
+            self.txt_log.setLineWrapMode(0)  # QPlainTextEdit.NoWrap
+            font = QFont("monospace")
+            font.setPointSize(9)
+            self.txt_log.setFont(font)
+        except Exception:
+            pass
+        lay.addWidget(self.txt_log)
+
+        self.lbl_log_path = QLabel("")
+        lay.addWidget(self.lbl_log_path)
+        return tab
+
+    # ------------------------------------------------------------ log helpers
+    def _current_log_level(self) -> int:
+        if self.combo_log_level is None:
+            return logmod.DEBUG
+        lvl = self.combo_log_level.currentData()
+        return lvl if isinstance(lvl, int) else logmod.DEBUG
+
+    def _refresh_logs(self) -> None:
+        level = self._current_log_level()
+        lines = logmod.snapshot(level)
+        self.txt_log.setPlainText("\n".join(lines))
+        self.lbl_log_path.setText(
+            "Log file: {}   |   shown: {}   (in-memory ring: {})".format(
+                logmod.log_file_path() or "(none)",
+                len(lines),
+                logmod.ring_size(),
+            )
+        )
+
+    def _on_log_copy(self) -> None:
+        text = self.txt_log.toPlainText()
+        if text:
+            QApplication.clipboard().setText(text)
+
+    def _on_log_clear(self) -> None:
+        logmod.clear()
+        self._refresh_logs()
+
+    def _on_log_open(self) -> None:
+        path = logmod.log_file_path()
+        if not path:
+            QMessageBox.information(self, "Log file", "No log file is available.")
+            return
+        try:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+        except Exception as exc:  # pragma: no cover
+            QMessageBox.information(self, "Log file", f"{path}\n\n{exc}")
 
 # ---------------------------------------------------------- load / save
     def _load_values(self) -> None:

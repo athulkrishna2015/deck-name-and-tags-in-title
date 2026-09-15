@@ -69,6 +69,21 @@ Provides the graphical configuration dialog.
   `mw.addonManager.setConfigAction`; if that API is unavailable it falls back
   to a **Tools** menu entry.
 - PyQt6/PyQt5 compatibility: `QMessageBox.StandardButton` enum fallback and
+  `exec()`/`exec_()` detection.
+- The dialog is a `QTabWidget` with two tabs: **Settings** (title content +
+  formatting) and **Logs** (live debug viewer driven by `logging.py`).
+
+### `addon/logging.py` — diagnostic logging
+
+- Sets up a module-level `logging.Logger` (idempotent) that writes to a
+  rotating file at `user_files/deck_name_and_tags_in_title.log` (the add-on's
+  `user_files/` folder is preserved across upgrades) and mirrors the last
+  2000 records into an in-memory ring buffer.
+- The ring buffer + `snapshot()`, `clear()`, `log_file_path()`, `ring_size()`
+  helpers are what the **Logs** tab renders.
+- Other modules obtain the logger via `get_logger()` and call
+  `logger.debug(...)`; failures inside logging never break the app.
+
 ### `addon/__init__.py` — integration & title building
 
 - `wrapmethod()` — a small, self-contained re-implementation of bound-method
@@ -77,9 +92,10 @@ Provides the graphical configuration dialog.
 - `DeckNamer` — builds the title string.
   - `get_deck_name()` → `mw.col.decks.current()["name"]`.
   - `get_profile_string()` → profile name when >1 profile exists.
-  - `get_tags_string()` → `mw.reviewer.card.tags`, minus scheduling markers
-    (`marked`, `suspended`, `leech`), truncated to `max_tags`, joined with
-    `tag_separator`.
+  - `get_tags_string()` → the tags of the *note* behind the reviewed card,
+    via `card.note().tags` (tags belong to notes, not cards), minus scheduling
+    markers (`marked`, `suspended`, `leech`), truncated to `max_tags`, joined
+    with `tag_separator`.
   - `_content_title()` → reduces `(deck, tags)` to one string according to
     `title_content`.
   - `_join()` → joins the non-empty parts with `title_separator`.
@@ -118,7 +134,8 @@ shows only profile + program name (`deck_browser_title`), because there is no
 | `mw.overview.show` (wrapped) | refresh title at the deck overview |
 | `addHook("showQuestion", …)` | refresh title each time a card is shown |
 | `mw.col.decks.current()/get()` | resolve deck / sub-deck names |
-| `mw.reviewer.card.tags` | current card's tags |
+| `mw.reviewer.card.note().tags` | tags of the note behind the reviewed card |
+| `addon/logging` (`get_logger`, `snapshot`) | file + in-memory logging for the Logs tab |
 | `mw.addonManager.getConfig/writeConfig` | read / persist config |
 | `mw.setConfigAction` | point the Config button at our dialog |
 | `mw.setConfigUpdatedAction` | re-read config when changed |
@@ -135,7 +152,7 @@ rules and excludes runtime state (`meta.json`, `__pycache__`, logs).
 `bump.py` centralises version bumps, keeping `manifest.json` and `VERSION`
 in sync.
 
-Included in the package: the four Python modules, `config.json`,
+Included in the package: the five Python modules, `config.json`,
 `config.md`, `manifest.json`, `VERSION`.
 Excluded: `__pycache__/`, `.pyc`, logs, `meta.json`, and any `.gitignore`d
 paths.

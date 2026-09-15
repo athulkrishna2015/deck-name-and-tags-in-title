@@ -11,10 +11,11 @@ add-on and extended with tag support and a graphical configuration dialog.
 
 - Show the **deck name**, the **current card's tags**, **both** (default) or
   **nothing extra in the window title, fully configurable from the GUI.
-- Tags are read from the card being reviewed, so you see at a glance which
-  topic you are studying.
+- Tags come from the **note** behind the reviewed card (tags belong to notes,
+  not cards) — so you see at a glance which topic you are studying.
 - **Custom config dialog** (**Tools → Add-ons → Deck Name & Tags in Title →
-  Config**) — no manual JSON editing needed.
+  Config**) — no manual JSON editing needed, with a dedicated **Logs** tab
+  for live debugging (level filter, refresh, copy, clear, open the log file).
 - Configurable separators, maximum tag count, sub-deck handling and program
   name behaviour.
 - Settings apply immediately (no restart required).
