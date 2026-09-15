@@ -16,25 +16,38 @@ add-on and extended with tag support and a graphical configuration dialog.
   <https://github.com/ospalh/anki-addons/tree/develop/deck_name_in_title>
 - Original code © 2012–2018 Roland Sieker <ospalh@gmail.com>, GNU AGPL v3+.
 - This version adds: note tags in the window title, a graphical config dialog
-  (**Settings** + **Logs** tabs), validated/coerced config with immediate
-  apply, docs, tests, and release packaging.
+  (**Settings** / **Logs** / **Support** tabs), validated/coerced config with
+  immediate apply, docs, tests, and release packaging.
 
 ## Features
 
 - Show the **deck name**, the **current card's tags**, **both** (default) or
-  **nothing extra in the window title, fully configurable from the GUI.
+  **nothing** extra in the window title, fully configurable from the GUI.
 - Tags come from the **note** behind the reviewed card (tags belong to notes,
   not cards) — so you see at a glance which topic you are studying.
 - **Custom config dialog** (**Tools → Add-ons → Deck Name & Tags in Title →
-  Config**) — no manual JSON editing needed, with a dedicated **Logs** tab
-  for live debugging (level filter, refresh, copy, clear, open the log file).
+  Config**) — no manual JSON editing needed:
+  - **Settings** tab — every option, including an **Ignored tags** editor
+    with autocomplete from your collection's tag list.
+  - **Logs** tab — live view of recent add-on log records for debugging
+    (level filter, refresh, copy, clear, open the log file).
+  - **Support** tab — Ko-fi, UPI / BTC / ETH QR codes and a supporter
+    opt-out checkbox.
+- **Update welcome** — after an update, the config dialog opens once on the
+  **Support** tab (deferred until after startup, so Anki boots just as fast;
+  suppressed permanently if you tick the supporter checkbox).
+- Compatible with modern Anki's **strict Qt6 enums** (tested on Anki 26.x /
+  PyQt 6.11), with Qt5 fallbacks for older installs.
 - Configurable separators, maximum tag count, sub-deck handling and program
   name behaviour.
 - Settings apply immediately (no restart required).
 
 ## Install
 
-### From the package (`.ankiaddon)
+### From the package (`.ankiaddon`)
+
+Requires Anki 2.1.50 or newer (Qt6 builds; tested on Anki 26.x / PyQt 6.11,
+with Qt5 fallbacks for older installs).
 
 1. Open Anki.
 2. **Tools → Add-ons → Get Add-ons… → Install from file…** and pick the
@@ -75,6 +88,13 @@ The behaviour is fully described in [docs/configuration.md](docs/configuration.m
 - [Setup / Install & Symlink](docs/setup.md)
 - [Configuration (keys, defaults, JSON)](docs/configuration.md)
 - [Architecture & Code](docs/architecture.md)
+
+## Support this add-on
+
+Open **Tools → Add-ons → Deck Name & Tags in Title → Config → Support** for
+Ko-fi, UPI / BTC / ETH QR codes and copy-to-clipboard addresses. If you have
+already supported the add-on, tick **"I have supported this addon"** — the
+one-time update welcome will then never open again.
 
 ## Changelog
 
