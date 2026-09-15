@@ -55,6 +55,7 @@ class _AddonManager:
             "title_separator": " – ",
             "tag_separator": ", ",
             "max_tags": 5,
+            "ignored_tags": [],
             "show_subdeck": True,
             "subdeck_format": "{parent}::{child}",
             "use_argv_0": False,
@@ -120,10 +121,11 @@ sys.modules["aqt.qt"] = aqt_qt
 def _make_qt_stub():
     """Create trivial classes so `from aqt.qt import QDialog, ...` works."""
     names = [
-        "QApplication", "QCheckBox", "QComboBox", "QDesktopServices", "QDialog",
-        "QFont", "QFormLayout", "QGroupBox", "QHBoxLayout", "QLabel", "QLineEdit",
-        "QMessageBox", "QPlainTextEdit", "QPushButton", "QSpinBox", "QTabWidget",
-        "QTimer", "QUrl", "QVBoxLayout", "QWidget",
+        "QApplication", "QCheckBox", "QComboBox", "QCompleter", "QDesktopServices",
+        "QDialog", "QFont", "QFormLayout", "QGroupBox", "QHBoxLayout", "QLabel",
+        "QLineEdit", "QListView", "QListWidget", "QListWidgetItem", "QMessageBox",
+        "QPlainTextEdit", "QPushButton", "QSpinBox", "QStringListModel",
+        "QTabWidget", "QTimer", "QUrl", "QVBoxLayout", "QWidget",
     ]
 
     class _Stub:
@@ -206,6 +208,11 @@ assert _check("none", "Anki"), mw.title
 _conf(title_content="tags", max_tags=1)
 addon.deck_namer.card_title()
 assert _check("tags truncated to 1", "espana – Anki"), mw.title
+
+# 4c) ignored_tags filtering (case-insensitive)
+_conf(title_content="tags", max_tags=0, ignored_tags=["Vocab"])
+addon.deck_namer.card_title()
+assert _check("ignored tag filtered", "espana – Anki"), mw.title
 
 # 5) overview: no card -> deck only, no tags
 _conf(title_content="both")

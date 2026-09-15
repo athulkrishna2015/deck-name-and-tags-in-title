@@ -5,6 +5,16 @@ here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] — (unreleased)
+
+### Added
+
+- New `ignored_tags` config key (default `[]`): note tags that are never
+  shown in the title, matched case-insensitively.
+- The Config UI **Settings** tab now has an **Ignored tags** field with
+  autocomplete fed by the collection's tag list, an **Ignoring now** list,
+  and **Add typed tag** / **Remove selected** / **Refresh tag list** actions.
+
 ## [2.1.1] — (2026-09-15)
 
 ### Fixed

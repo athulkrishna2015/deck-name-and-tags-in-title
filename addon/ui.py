@@ -22,6 +22,7 @@ from aqt.qt import (
     QApplication,
     QCheckBox,
     QComboBox,
+    QCompleter,
     QDesktopServices,
     QDialog,
     QFont,
@@ -30,15 +31,12 @@ from aqt.qt import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QListView,
+    QListWidget,
+    QListWidgetItem,
     QMessageBox,
-    QPlainTextEdit,
-    QPushButton,
-    QSpinBox,
-    QTabWidget,
-    QTimer,
-    QUrl,
-    QVBoxLayout,
-    QWidget,
+    QPlainTextEdit, QPushButton, QSpinBox, QStringListModel,
+    QTabWidget, QTimer, QUrl, QVBoxLayout, QWidget,
 )
 
 from . import logging as logmod
@@ -48,6 +46,7 @@ from .constants import (
     CFG_SEPARATOR,
     CFG_TAG_SEPARATOR,
     CFG_MAX_TAGS,
+    CFG_IGNORED_TAGS,
     CFG_SHOW_SUBDECK,
     CFG_SUBDECK_FORMAT,
     CFG_USE_ARGV0,
@@ -142,6 +141,38 @@ class SettingsDialog(QDialog):
         self.spin_max_tags.setRange(0, 50)
         self.spin_max_tags.setSpecialValueText("No limit")
         fmt.addRow("Maximum tags shown:", self.spin_max_tags)
+
+        self.ignored_edit = QLineEdit()
+        self.ignored_completer = QCompleter(self)
+        self.ignored_completer.setCaseSensitivity(0)  # Qt.CaseInsensitive
+        self.ignored_model = QStringListModel(self)
+        self.ignored_completer.setModel(self.ignored_model)
+        self.ignored_edit.setCompleter(self.ignored_completer)
+        fmt.addRow("Ignored tags:", self.ignored_edit)
+        fmt.addRow(
+            "",
+            QLabel(
+                "Tags never shown in the title — separate with commas. "
+                "Type and pick from your collection's tags."
+            ),
+        )
+
+        self.list_ignored = QListWidget()
+        self.list_ignored.setSelectionMode(3)  # QAbstractItemView.ExtendedSelection
+        self.list_ignored.setMaximumHeight(110)
+        fmt.addRow("Ignoring now:", self.list_ignored)
+
+        row_ignored_buttons = QHBoxLayout()
+        self.btn_add_ignored = QPushButton("Add typed tag")
+        self.btn_add_ignored.clicked.connect(self._on_add_ignored)
+        row_ignored_buttons.addWidget(self.btn_add_ignored)
+        self.btn_remove_ignored = QPushButton("Remove selected")
+        self.btn_remove_ignored.clicked.connect(self._on_remove_ignored)
+        row_ignored_buttons.addWidget(self.btn_remove_ignored)
+        btn_refresh_tags = QPushButton("Refresh tag list")
+        btn_refresh_tags.clicked.connect(self._load_all_tags)
+        row_ignored_buttons.addWidget(btn_refresh_tags)
+        fmt.addRow("", row_ignored_buttons)
 
         self.cb_subdeck = QCheckBox(
             "Show the sub-deck you descended into during review"
@@ -285,6 +316,8 @@ class SettingsDialog(QDialog):
         self.edit_separator.setText(str(cfg.get(CFG_SEPARATOR, DEFAULTS[CFG_SEPARATOR])))
         self.edit_tag_separator.setText(str(cfg.get(CFG_TAG_SEPARATOR, DEFAULTS[CFG_TAG_SEPARATOR])))
         self.spin_max_tags.setValue(int(cfg.get(CFG_MAX_TAGS, DEFAULTS[CFG_MAX_TAGS]) or 0))
+        self._load_all_tags()
+        self._set_ignored_list(self._split_tags(cfg.get(CFG_IGNORED_TAGS)))
         self.cb_subdeck.setChecked(bool(cfg.get(CFG_SHOW_SUBDECK, DEFAULTS[CFG_SHOW_SUBDECK])))
         self.edit_subdeck_format.setText(
             str(cfg.get(CFG_SUBDECK_FORMAT, DEFAULTS[CFG_SUBDECK_FORMAT]))
@@ -297,10 +330,79 @@ class SettingsDialog(QDialog):
         cfg[CFG_SEPARATOR] = self.edit_separator.text()
         cfg[CFG_TAG_SEPARATOR] = self.edit_tag_separator.text()
         cfg[CFG_MAX_TAGS] = int(self.spin_max_tags.value())
+        cfg[CFG_IGNORED_TAGS] = list(self._get_ignored_list())
         cfg[CFG_SHOW_SUBDECK] = bool(self.cb_subdeck.isChecked())
         cfg[CFG_SUBDECK_FORMAT] = self.edit_subdeck_format.text()
         cfg[CFG_USE_ARGV0] = bool(self.cb_argv0.isChecked())
         return cfg
+
+    # ------------------------------------------------------------ ignored tags
+    @staticmethod
+    def _split_tags(value: Any) -> list[str]:
+        import re
+
+        if value is None:
+            return []
+        if isinstance(value, str):
+            parts = re.split(r"[,\s;]+", value)
+        elif isinstance(value, (list, tuple)):
+            parts = list(value)
+        else:
+            parts = [value]
+        cleaned: list[str] = []
+        seen: set[str] = set()
+        for item in parts:
+            text = str(item).strip().strip(",;")
+            if not text:
+                continue
+            lowered = text.lower()
+            if lowered not in seen:
+                seen.add(lowered)
+                cleaned.append(text)
+        return cleaned
+
+    def _collection_tags(self) -> list[str]:
+        tags: list[str] = []
+        try:
+            col = getattr(mw, "col", None)
+            manager = getattr(col, "tags", None) if col is not None else None
+            fetched = manager.all() if manager is not None else []
+            tags = sorted(str(name) for name in (fetched or []) if str(name).strip())
+        except Exception:
+            tags = []
+        return tags
+
+    def _load_all_tags(self) -> None:
+        self.ignored_model.setStringList(self._collection_tags())
+
+    def _get_ignored_list(self) -> list[str]:
+        return [
+            str(self.list_ignored.item(row).text())
+            for row in range(self.list_ignored.count())
+            if self.list_ignored.item(row) is not None
+        ]
+
+    def _set_ignored_list(self, tags: list[str]) -> None:
+        self.list_ignored.clear()
+        for tag in self._split_tags(tags):
+            self.list_ignored.addItem(QListWidgetItem(tag))
+        self.ignored_edit.clear()
+
+    def _add_ignored_tags(self, tags: list[str]) -> None:
+        existing = {text.lower() for text in self._get_ignored_list()}
+        for tag in self._split_tags(tags):
+            if tag.lower() not in existing:
+                existing.add(tag.lower())
+                self.list_ignored.addItem(QListWidgetItem(tag))
+        self.ignored_edit.clear()
+
+    def _on_add_ignored(self) -> None:
+        self._add_ignored_tags([self.ignored_edit.text()])
+
+    def _on_remove_ignored(self) -> None:
+        for item in self.list_ignored.selectedItems():
+            row = self.list_ignored.row(item)
+            self.list_ignored.takeItem(row)
 
     def _on_save(self) -> None:
         save_config(self._collect_config())

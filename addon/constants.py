@@ -25,6 +25,9 @@ CFG_TAG_SEPARATOR = "tag_separator"
 #: Maximum number of tags to print (0 = unlimited). Avoids cluttered titles.
 CFG_MAX_TAGS = "max_tags"
 
+#: Note tags to ignore (never shown in the title). Editable in the Config UI.
+CFG_IGNORED_TAGS = "ignored_tags"
+
 #: Whether the sub-deck you descended into is shown during review.
 CFG_SHOW_SUBDECK = "show_subdeck"
 
@@ -59,6 +62,7 @@ DEFAULTS = {
     CFG_SEPARATOR: " – ",
     CFG_TAG_SEPARATOR: ", ",
     CFG_MAX_TAGS: 5,
+    CFG_IGNORED_TAGS: [],
     CFG_SHOW_SUBDECK: True,
     CFG_SUBDECK_FORMAT: "{parent}::{child}",
     CFG_USE_ARGV0: False,

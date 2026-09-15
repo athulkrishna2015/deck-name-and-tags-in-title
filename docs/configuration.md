@@ -54,6 +54,19 @@ How several tags are joined, e.g. `"tags:English, Grammar"`.
 Maximum number of tags printed before they are truncated (`0` = no limit).
 Keeps the window title short on decks with many tags.
 
+### `ignored_tags` — *list of strings*, default `[]`
+
+Note tags that are **never shown in the title** (matched case-insensitively):
+
+```json
+{ "ignored_tags": ["leech", "personal"] }
+```
+
+Pick them in the Config UI: type in **Ignored tags** and let the collection
+tag list auto-complete, press **Add typed tag** (or type a comma-separated
+list), then **Save**. Remove entries with **Remove selected**. The
+auto-complete list refreshes from the collection on demand.
+
 ### `show_subdeck` — *boolean*, default `true`
 
 When reviewing a card that lives in a sub-deck, prepend the sub-deck name to

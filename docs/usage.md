@@ -33,6 +33,8 @@ note** behind the reviewed card (tags belong to notes, not cards).
   have no "current card", so tags are never shown there.
 - `max_tags` truncates long tag lists so the title stays short. Set it to
   `0` to show every tag.
+- `ignored_tags` hides chosen tags (matched case-insensitively): Config →
+  type with autocomplete → **Add typed tag** → **Save**.
 - Internal markers (`marked`, `suspended`, `leech`) are filtered out and are
   never shown.
 - With `show_subdeck` enabled, reviewing a card in a sub-deck shows the full

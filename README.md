@@ -65,6 +65,7 @@ The behaviour is fully described in [docs/configuration.md](docs/configuration.m
 | `title_separator` | `" – "` | separator between title parts |
 | `tag_separator` | `", "` | separator between tags |
 | `max_tags` | `5` | max tags shown (`0` = no limit) |
+| `ignored_tags` | `[]` | tags never shown in the title (Config UI with collection autocomplete) |
 | `show_subdeck` | `true` | show the sub-deck during review |
 | `subdeck_format` | `{parent}::{child}` | sub-deck template |
 | `use_argv_0` | `false` | use program file name instead of "Anki" |

@@ -107,7 +107,12 @@ class DeckNamer(object):
             return ""
         tags = list(getattr(note, "tags", None) or [])
         # Scheduling markers (used by some add-ons) carry no learning value.
-        tags = [t for t in tags if t not in ("marked", "suspended", "leech")]
+        ignored = {t.lower() for t in settings.ignored_tags}
+        tags = [
+            t
+            for t in tags
+            if t not in ("marked", "suspended", "leech") and t.lower() not in ignored
+        ]
         max_tags = settings.max_tags
         if max_tags and len(tags) > max_tags:
             tags = tags[:max_tags]

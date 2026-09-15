@@ -13,7 +13,7 @@ saves) so changes take effect without restarting Anki.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from aqt import mw
@@ -23,6 +23,7 @@ from .constants import (
     CFG_SEPARATOR,
     CFG_TAG_SEPARATOR,
     CFG_MAX_TAGS,
+    CFG_IGNORED_TAGS,
     CFG_SHOW_SUBDECK,
     CFG_SUBDECK_FORMAT,
     CFG_USE_ARGV0,
@@ -39,6 +40,7 @@ class Settings:
     title_separator: str = DEFAULTS[CFG_SEPARATOR]
     tag_separator: str = DEFAULTS[CFG_TAG_SEPARATOR]
     max_tags: int = DEFAULTS[CFG_MAX_TAGS]
+    ignored_tags: list = field(default_factory=list)
     show_subdeck: bool = DEFAULTS[CFG_SHOW_SUBDECK]
     subdeck_format: str = DEFAULTS[CFG_SUBDECK_FORMAT]
     use_argv_0: bool = DEFAULTS[CFG_USE_ARGV0]
@@ -111,6 +113,28 @@ def _as_int(value: Any, default: int, minimum: int = 0, maximum: int = 10**9) ->
     return max(minimum, min(maximum, parsed))
 
 
+def _as_tag_list(value: Any) -> list[str]:
+    """Normalise the ``ignored_tags`` value to a clean list of tag names."""
+    raw: list[Any] = []
+    if isinstance(value, str):
+        import re
+
+        raw = [p for p in re.split(r"[,\s;]+", value) if p]
+    elif isinstance(value, (list, tuple)):
+        raw = list(value)
+    cleaned: list[str] = []
+    seen: set[str] = set()
+    for item in raw:
+        text = str(item).strip().strip(",;")
+        if not text:
+            continue
+        lowered = text.lower()
+        if lowered not in seen:
+            seen.add(lowered)
+            cleaned.append(text)
+    return cleaned
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -121,6 +145,7 @@ def _build_settings(cfg: dict[str, Any]) -> Settings:
         title_separator=_as_str(cfg.get(CFG_SEPARATOR), DEFAULTS[CFG_SEPARATOR]),
         tag_separator=_as_str(cfg.get(CFG_TAG_SEPARATOR), DEFAULTS[CFG_TAG_SEPARATOR]),
         max_tags=_as_int(cfg.get(CFG_MAX_TAGS), DEFAULTS[CFG_MAX_TAGS], minimum=0, maximum=50),
+        ignored_tags=_as_tag_list(cfg.get(CFG_IGNORED_TAGS)),
         show_subdeck=_as_bool(cfg.get(CFG_SHOW_SUBDECK), DEFAULTS[CFG_SHOW_SUBDECK]),
         subdeck_format=_as_str(cfg.get(CFG_SUBDECK_FORMAT), DEFAULTS[CFG_SUBDECK_FORMAT]),
         use_argv_0=_as_bool(cfg.get(CFG_USE_ARGV0), DEFAULTS[CFG_USE_ARGV0]),

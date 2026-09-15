@@ -18,7 +18,8 @@ raw JSON.
 | `title_content` | string | `"both"` | What appears in the window title: `"both"` (deck name + tags), `"deck"`, `"tags"`, or `"none"`. |
 | `title_separator` | string | `" – "` | Text placed between the content, the profile name and the program name (a spaced en-dash by default). |
 | `tag_separator` | string | `", "` | Text used to join several tags (e.g. `"foo, bar"`). |
-| `max_tags` | integer | `5` | Maximum number of tags shown (`0` = no limit). Keeps the title short. |
+| `max_tags` | integer | `5` | Maximum number of tags shown (`0` = no limit). |
+| `ignored_tags` | list of strings | `[]` | Note tags never shown in the title. Edit from the Config UI (type with autocomplete, then add); separate with commas when editing raw JSON. |
 | `show_subdeck` | boolean | `true` | When reviewing a card in a sub-deck, show which sub-deck you are in. |
 | `subdeck_format` | string | `"{parent}::{child}"` | Templates how the parent deck and sub-deck are combined. Available fields: `{parent}`, `{child}`, `{homeDeck}`. |
 | `use_argv_0` | boolean | `false` | Use the program's file name instead of the literal word "Anki". |
