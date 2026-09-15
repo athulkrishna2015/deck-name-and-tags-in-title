@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Build / release artifacts
+*.ankiaddon
+*.zip
+dist/
+build/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Runtime state (never commit personal config overrides)
+addon/meta.json
+addon/user_files/

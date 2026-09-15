@@ -1,0 +1,9 @@
+{
+  "title_content": "both",
+  "title_separator": " – ",
+  "tag_separator": ", ",
+  "max_tags": 5,
+  "show_subdeck": true,
+  "subdeck_format": "{parent}::{child}",
+  "use_argv_0": false
+}
