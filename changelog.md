@@ -5,6 +5,20 @@ here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.1] — (2026-09-15)
+
+### Fixed
+
+- Fixed a `TypeError` crash when closing the settings dialog:
+  `SettingsDialog.closeEvent()` now accepts and forwards Qt's `QCloseEvent`,
+  so the **Logs** tab timer shuts down cleanly.
+
+### Changed
+
+- Added a **Fork / origin** section to `README.md`: this repository is not a
+  GitHub fork, but a standalone extended successor of Roland Sieker's classic
+  `deck_name_in_title` add-on (© 2012–2018, GNU AGPL v3+).
+
 ## [2.1.0] — (2026-09-15)
 
 ### Added

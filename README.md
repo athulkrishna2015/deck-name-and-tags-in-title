@@ -7,6 +7,18 @@ Inspired by the classic ospalh
 [`deck_name_in_title`](https://github.com/ospalh/anki-addons/tree/develop/deck_name_in_title)
 add-on and extended with tag support and a graphical configuration dialog.
 
+## Fork / origin
+
+- This repository is **not a GitHub fork** (`fork: false`, no upstream parent
+  on GitHub).
+- It is a standalone, extended successor of Roland Sieker's classic
+  `deck_name_in_title` add-on:
+  <https://github.com/ospalh/anki-addons/tree/develop/deck_name_in_title>
+- Original code © 2012–2018 Roland Sieker <ospalh@gmail.com>, GNU AGPL v3+.
+- This version adds: note tags in the window title, a graphical config dialog
+  (**Settings** + **Logs** tabs), validated/coerced config with immediate
+  apply, docs, tests, and release packaging.
+
 ## Features
 
 - Show the **deck name**, the **current card's tags**, **both** (default) or
